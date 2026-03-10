@@ -1,11 +1,33 @@
 """Invoke Claude CLI for code review."""
 
 import json
+import re
 import subprocess
 
 from scripts.code_review.models import Finding
 from scripts.code_review.prompt import REVIEW_PROMPT
 from scripts.code_review.schema import REVIEW_SCHEMA
+
+
+def _extract_json(text):
+    """Extract first JSON object from text.
+
+    Args:
+        text (str): Raw text that may contain a
+            JSON object among other content.
+
+    Returns:
+        dict: The parsed JSON object, or empty dict
+            with summary if no JSON found.
+
+    Raises:
+        json.JSONDecodeError: If matched text is not
+            valid JSON.
+    """
+    match = re.search(r"\{[\s\S]*\}", text)
+    if match:
+        return json.loads(match.group())
+    return {"summary": "No review generated.", "findings": []}
 
 
 def run_review(diff_text):
@@ -23,16 +45,14 @@ def run_review(diff_text):
     Raises:
         subprocess.CalledProcessError: If the Claude
             CLI invocation fails.
-        json.JSONDecodeError: If Claude returns
-            invalid JSON.
     """
     prompt = REVIEW_PROMPT.format(diff=diff_text)
-    schema_str = json.dumps(REVIEW_SCHEMA)
+    schema_json = json.dumps(REVIEW_SCHEMA)
     cmd = [
         "claude", "-p",
         "--output-format", "json",
         "--max-turns", "5",
-        "--json-schema", schema_str,
+        "--json-schema", schema_json,
     ]
     print(f"  Claude cmd: {' '.join(cmd[:6])}...")
     print(f"  Prompt length: {len(prompt)} chars")
@@ -44,17 +64,22 @@ def run_review(diff_text):
         check=True,
         timeout=300,
     )
-    print(f"  Claude stdout: {result.stdout[:500]}")
+    raw = result.stdout
+    print(f"  Claude stdout: {raw[:500]}")
     if result.stderr:
         print(f"  Claude stderr: {result.stderr[:500]}")
-    data = json.loads(result.stdout)
-    # Claude JSON mode wraps in {"result": ...}
-    if "result" in data:
-        inner = data["result"]
-        if isinstance(inner, str):
-            data = json.loads(inner)
-        else:
-            data = inner
+
+    wrapper = json.loads(raw)
+    inner = wrapper.get("result", "")
+
+    if isinstance(inner, dict):
+        data = inner
+    elif isinstance(inner, str) and inner.strip():
+        data = _extract_json(inner)
+    else:
+        print("  Warning: empty result from Claude")
+        data = {"summary": "No review generated.", "findings": []}
+
     findings = [
         Finding(**f) for f in data.get("findings", [])
     ]
