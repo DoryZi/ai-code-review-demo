@@ -4,16 +4,24 @@ import argparse
 import sys
 
 from scripts.code_review.diff import get_pr_diff
+from scripts.code_review.diff import get_latest_commit_diff
 from scripts.code_review.reviewer import run_review
-from scripts.code_review.dismiss import dismiss_previous_reviews
+from scripts.code_review.dismiss import already_reviewed
+from scripts.code_review.dismiss import count_bot_reviews
 from scripts.code_review.commenter import post_review
 from scripts.code_review.fix_doc import build_fix_doc
 
 MAX_DIFF_CHARS = 100_000
+MAX_FOLLOWUP_FINDINGS = 5
 
 
 def main():
     """Parse args and run the review pipeline.
+
+    First push gets a full review (up to 15 findings).
+    Subsequent pushes review only the latest commit
+    diff, capped at 5 findings. Skips if the current
+    commit was already reviewed.
 
     Returns:
         None: Always exits with code 0.
@@ -32,32 +40,40 @@ def main():
     )
     args = parser.parse_args()
 
-    print(f"[1/5] Getting diff against {args.base_ref}...")
-    diff = get_pr_diff(args.base_ref)
+    print("[1/6] Checking for existing review...")
+    if already_reviewed(args.pr_number):
+        print("Already reviewed this commit, skipping.")
+        sys.exit(0)
+
+    is_first = count_bot_reviews(args.pr_number) == 0
+    if is_first:
+        print("[2/6] First review — full PR diff...")
+        diff = get_pr_diff(args.base_ref)
+    else:
+        print("[2/6] Follow-up — latest commit diff...")
+        diff = get_latest_commit_diff()
+
     if not diff.strip():
         print("No diff found, skipping review.")
         sys.exit(0)
-    print(f"[1/5] Diff size: {len(diff)} chars")
-    print(f"[1/5] Diff preview:\n{diff[:500]}\n...")
+    print(f"[2/6] Diff size: {len(diff)} chars")
     if len(diff) > MAX_DIFF_CHARS:
         diff = diff[:MAX_DIFF_CHARS]
-        print("[1/5] Diff truncated to 100K chars.")
+        print("[2/6] Diff truncated to 100K chars.")
 
-    print("[2/5] Sending diff to Claude for review...")
+    print("[3/6] Sending diff to Claude for review...")
     summary, findings = run_review(diff)
-    print(f"[2/5] Summary: {summary}")
-    print(f"[2/5] Found {len(findings)} finding(s).")
+    if not is_first and len(findings) > MAX_FOLLOWUP_FINDINGS:
+        print(f"[3/6] Capping to {MAX_FOLLOWUP_FINDINGS}")
+        findings = findings[:MAX_FOLLOWUP_FINDINGS]
+    print(f"[3/6] Summary: {summary[:200]}")
+    print(f"[3/6] Found {len(findings)} finding(s).")
     for f in findings:
         print(f"  - [{f.severity}/{f.category}] "
               f"{f.file}:{f.line} {f.comment[:80]}")
 
-    print(f"[3/5] Dismissing old reviews on PR #{args.pr_number}...")
-    count = dismiss_previous_reviews(args.pr_number)
-    print(f"[3/5] Dismissed {count} old review(s).")
-
-    print("[4/5] Building fix guide...")
+    print("[4/6] Building fix guide...")
     fix_doc = build_fix_doc(summary, findings)
-    print(f"[4/5] Fix guide: {len(fix_doc)} chars")
 
     print(f"[5/6] Posting review on PR #{args.pr_number}...")
     post_review(args.pr_number, summary, findings, fix_doc)
