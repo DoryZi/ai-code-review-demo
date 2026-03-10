@@ -35,14 +35,18 @@ def dismiss_previous_reviews(pr_number):
         if "bot" not in login:
             continue
         rid = review["id"]
-        subprocess.run(
-            [
-                "gh", "api", "--method", "PUT",
-                f"repos/{repo}/pulls/{pr_number}"
-                f"/reviews/{rid}/dismissals",
-                "-f", "message=Superseded by new review",
-            ],
-            capture_output=True, text=True, check=True,
-        )
-        dismissed += 1
+        try:
+            subprocess.run(
+                [
+                    "gh", "api", "--method", "PUT",
+                    f"repos/{repo}/pulls/{pr_number}"
+                    f"/reviews/{rid}/dismissals",
+                    "-f", "message=Superseded",
+                ],
+                capture_output=True, text=True,
+                check=True,
+            )
+            dismissed += 1
+        except subprocess.CalledProcessError:
+            print(f"  Could not dismiss review {rid}")
     return dismissed

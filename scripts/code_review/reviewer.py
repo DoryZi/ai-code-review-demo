@@ -31,7 +31,7 @@ def run_review(diff_text):
     cmd = [
         "claude", "-p",
         "--output-format", "json",
-        "--max-turns", "1",
+        "--max-turns", "5",
         "--json-schema", schema_str,
     ]
     print(f"  Claude cmd: {' '.join(cmd[:6])}...")
