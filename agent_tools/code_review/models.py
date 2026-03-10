@@ -38,3 +38,38 @@ class Finding:
     comment: str
     dont: str = ""
     do: str = ""
+
+
+@dataclass
+class ReviewCost:
+    """Cost and token usage from an LLM review call.
+
+    Args:
+        input_tokens (int): Number of input/prompt tokens.
+        output_tokens (int): Number of output/completion
+            tokens.
+        cost_usd (float): Total cost in US dollars.
+        provider (str): The LLM provider used.
+        model (str): The model name used.
+
+    Returns:
+        ReviewCost: An instance with usage stats.
+
+    Raises:
+        TypeError: If required fields are missing.
+    """
+
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cost_usd: float = 0.0
+    provider: str = ""
+    model: str = ""
+
+    def __str__(self):
+        """Format cost as a human-readable string."""
+        return (
+            f"${self.cost_usd:.4f} "
+            f"({self.input_tokens}in/"
+            f"{self.output_tokens}out) "
+            f"[{self.provider}/{self.model}]"
+        )

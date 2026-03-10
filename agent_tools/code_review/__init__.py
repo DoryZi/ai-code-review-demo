@@ -1,4 +1,4 @@
-"""AI-powered code review for GitHub PRs.
+"""AI-powered code review for GitHub PRs and local changes.
 
 Modules:
     diff — Git diff retrieval.
@@ -9,4 +9,6 @@ Modules:
     models — Data models for findings.
     prompt — Review prompt template.
     schema — JSON schema for output.
+    openai_provider — OpenAI API provider.
+    local_review — Run reviews on local changes.
 """
