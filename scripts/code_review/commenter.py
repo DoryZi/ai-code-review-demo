@@ -35,7 +35,7 @@ def _format_comment(finding):
     return f"**[{sev}/{cat}]** {finding.comment}"
 
 
-def post_review(pr_number, summary, findings):
+def post_review(pr_number, summary, findings, fix_doc=""):
     """Post a review with inline comments on a PR.
 
     Args:
@@ -43,6 +43,8 @@ def post_review(pr_number, summary, findings):
         summary (str): Overall review summary text.
         findings (list): List of Finding objects to
             post as inline comments.
+        fix_doc (str): Markdown fix guide to append
+            to the review body.
 
     Returns:
         bool: True if review was posted successfully.
@@ -57,6 +59,8 @@ def post_review(pr_number, summary, findings):
     body = f"## AI Code Review\n\n{summary}"
     if count:
         body += f"\n\n_{count} finding(s)_"
+    if fix_doc:
+        body += f"\n\n---\n\n{fix_doc}"
     comments = []
     for f in findings:
         comments.append({

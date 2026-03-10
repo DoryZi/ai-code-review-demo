@@ -7,6 +7,7 @@ from scripts.code_review.diff import get_pr_diff
 from scripts.code_review.reviewer import run_review
 from scripts.code_review.dismiss import dismiss_previous_reviews
 from scripts.code_review.commenter import post_review
+from scripts.code_review.fix_doc import build_fix_doc
 
 MAX_DIFF_CHARS = 100_000
 
@@ -54,9 +55,13 @@ def main():
     count = dismiss_previous_reviews(args.pr_number)
     print(f"[3/5] Dismissed {count} old review(s).")
 
-    print(f"[4/5] Posting review on PR #{args.pr_number}...")
-    post_review(args.pr_number, summary, findings)
-    print("[5/5] Done! Review posted.")
+    print("[4/5] Building fix guide...")
+    fix_doc = build_fix_doc(summary, findings)
+    print(f"[4/5] Fix guide: {len(fix_doc)} chars")
+
+    print(f"[5/6] Posting review on PR #{args.pr_number}...")
+    post_review(args.pr_number, summary, findings, fix_doc)
+    print("[6/6] Done! Review posted.")
 
 
 if __name__ == "__main__":
