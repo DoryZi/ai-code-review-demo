@@ -74,9 +74,12 @@ def run_review(diff_text):
         data = inner
     elif isinstance(inner, str) and inner.strip():
         data = _extract_json(inner)
+        if not data.get("findings") and inner.strip():
+            print("  Claude returned text, using as summary")
+            data = {"summary": inner.strip(), "findings": []}
     else:
         print("  Warning: empty result from Claude")
-        data = {"summary": "No review generated.", "findings": []}
+        data = EMPTY
 
     findings = [
         Finding(**f) for f in data.get("findings", [])
