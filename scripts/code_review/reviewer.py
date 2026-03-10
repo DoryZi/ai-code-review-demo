@@ -32,17 +32,23 @@ def run_review(diff_text):
         [
             "claude", "-p",
             "--output-format", "json",
+            "--max-turns", "1",
             "--json-schema", schema_str,
         ],
         input=prompt,
         capture_output=True,
         text=True,
         check=True,
+        timeout=300,
     )
     data = json.loads(result.stdout)
     # Claude JSON mode wraps in {"result": ...}
     if "result" in data:
-        data = json.loads(data["result"])
+        inner = data["result"]
+        if isinstance(inner, str):
+            data = json.loads(inner)
+        else:
+            data = inner
     findings = [
         Finding(**f) for f in data.get("findings", [])
     ]
