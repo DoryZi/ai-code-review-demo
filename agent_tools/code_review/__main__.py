@@ -10,9 +10,8 @@ from agent_tools.code_review.dismiss import already_reviewed
 from agent_tools.code_review.dismiss import count_bot_reviews
 from agent_tools.code_review.commenter import post_review
 from agent_tools.code_review.fix_doc import build_fix_doc
-
-MAX_DIFF_CHARS = 100_000
-MAX_FOLLOWUP_FINDINGS = 5
+from agent_tools.code_review.config import MAX_DIFF_CHARS
+from agent_tools.code_review.config import MAX_FOLLOWUP_FINDINGS
 
 
 def main():

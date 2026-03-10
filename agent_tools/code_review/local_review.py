@@ -14,8 +14,7 @@ import sys
 
 from agent_tools.code_review.reviewer import run_review
 from agent_tools.code_review.fix_doc import build_fix_doc
-
-MAX_DIFF_CHARS = 100_000
+from agent_tools.code_review.config import MAX_DIFF_CHARS
 
 SEV_COLORS = {
     "critical": "\033[91m",

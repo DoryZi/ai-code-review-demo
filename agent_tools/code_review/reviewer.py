@@ -4,6 +4,7 @@ import json
 import subprocess
 
 from agent_tools.code_review.models import Finding, ReviewCost
+from agent_tools.code_review.config import DEFAULT_OPENAI_MODEL
 from agent_tools.code_review.prompt import REVIEW_PROMPT
 from agent_tools.code_review.openai_provider import review_openai
 EMPTY = {"summary": "No review generated.", "findings": []}
@@ -145,7 +146,7 @@ def run_review(diff_text, provider="claude", model=""):
     if provider == "claude":
         data, cost = _review_claude(prompt)
     elif provider == "openai":
-        m = model or "gpt-5.1-codex-mini"
+        m = model or DEFAULT_OPENAI_MODEL
         data, cost = review_openai(prompt, model=m,
                                    extract_json=_extract_json)
     else:

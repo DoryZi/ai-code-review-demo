@@ -1,45 +1,38 @@
-"""Review prompt template for Claude."""
+"""Review prompt loader.
 
-REVIEW_PROMPT = """You are a senior code reviewer.
-Review this PR diff for:
-- Bugs and logic errors
-- Security vulnerabilities
-- Performance issues
-- Code style and conventions
-- Missing error handling
+Loads the system prompt and review template from
+text files in the prompts/ directory so they can
+be easily customized without editing Python code.
+"""
 
-Rules:
-- You have a maximum of 5 turns. Use 1-2 turns to
-  read key files for context if needed, then you
-  MUST return your final JSON response.
-- Only comment on added/modified lines.
-- Limit to 15 most important findings.
-- Be specific and actionable.
-- Include the exact file path and line number.
-- For each finding, include a "dont" field with the
-  current bad code and a "do" field with the fix.
-  Keep examples short (1-5 lines each).
+from pathlib import Path
 
-Your final message MUST be ONLY a JSON object in
-this exact format, with no other text:
+from agent_tools.code_review.config import MAX_FINDINGS
 
-{{
-  "summary": "Brief overall review summary",
-  "findings": [
-    {{
-      "file": "path/to/file.py",
-      "line": 42,
-      "severity": "critical|warning|suggestion|nitpick",
-      "category": "bug|security|performance|style|testing|logic",
-      "comment": "Description of the issue",
-      "dont": "code showing the current bad pattern",
-      "do": "code showing the correct fix"
-    }}
-  ]
-}}
+_PROMPTS_DIR = Path(__file__).parent / "prompts"
 
-If the code looks good, return an empty findings
-array with a positive summary.
 
-DIFF:
-{diff}"""
+def _load(filename):
+    """Load a prompt file from the prompts directory.
+
+    Args:
+        filename (str): Name of the file to load.
+
+    Returns:
+        str: The file contents.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+    """
+    return (_PROMPTS_DIR / filename).read_text()
+
+
+SYSTEM_PROMPT = _load("system.txt")
+
+# Template with {diff} and {max_findings} placeholders.
+_REVIEW_TEMPLATE = _load("review.txt")
+
+# Pre-fill max_findings, leaving {diff} for runtime.
+REVIEW_PROMPT = _REVIEW_TEMPLATE.replace(
+    "{max_findings}", str(MAX_FINDINGS),
+)
