@@ -40,7 +40,8 @@ def _format_comment(finding):
     return body
 
 
-def post_review(pr_number, summary, findings, fix_doc=""):
+def post_review(pr_number, summary, findings,
+                fix_doc="", cost=None):
     """Post a review with inline comments on a PR.
 
     Args:
@@ -50,6 +51,8 @@ def post_review(pr_number, summary, findings, fix_doc=""):
             post as inline comments.
         fix_doc (str): Markdown fix guide to append
             to the review body.
+        cost (ReviewCost): Optional cost/usage data
+            to include in the review comment.
 
     Returns:
         bool: True if review was posted successfully.
@@ -64,6 +67,12 @@ def post_review(pr_number, summary, findings, fix_doc=""):
     body = f"## AI Code Review\n\n{summary}"
     if count:
         body += f"\n\n_{count} finding(s)_"
+    if cost and cost.cost_usd > 0:
+        body += (
+            f"\n\n**Review cost:** ${cost.cost_usd:.4f} "
+            f"({cost.input_tokens} in / "
+            f"{cost.output_tokens} out)"
+        )
     if fix_doc:
         body += f"\n\n---\n\n{fix_doc}"
     comments = []
