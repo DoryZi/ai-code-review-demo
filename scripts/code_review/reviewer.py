@@ -6,7 +6,7 @@ import subprocess
 
 from scripts.code_review.models import Finding
 from scripts.code_review.prompt import REVIEW_PROMPT
-from scripts.code_review.schema import REVIEW_SCHEMA
+EMPTY = {"summary": "No review generated.", "findings": []}
 
 
 def _extract_json(text):
@@ -19,15 +19,15 @@ def _extract_json(text):
     Returns:
         dict: The parsed JSON object, or empty dict
             with summary if no JSON found.
-
-    Raises:
-        json.JSONDecodeError: If matched text is not
-            valid JSON.
     """
     match = re.search(r"\{[\s\S]*\}", text)
-    if match:
+    if not match:
+        return EMPTY
+    try:
         return json.loads(match.group())
-    return {"summary": "No review generated.", "findings": []}
+    except json.JSONDecodeError:
+        print(f"  Failed to parse: {match.group()[:200]}")
+        return EMPTY
 
 
 def run_review(diff_text):
@@ -47,12 +47,10 @@ def run_review(diff_text):
             CLI invocation fails.
     """
     prompt = REVIEW_PROMPT.format(diff=diff_text)
-    schema_json = json.dumps(REVIEW_SCHEMA)
     cmd = [
         "claude", "-p",
         "--output-format", "json",
         "--max-turns", "5",
-        "--json-schema", schema_json,
     ]
     print(f"  Claude cmd: {' '.join(cmd[:6])}...")
     print(f"  Prompt length: {len(prompt)} chars")
