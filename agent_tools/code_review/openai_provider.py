@@ -3,6 +3,8 @@
 import os
 
 from agent_tools.code_review.models import ReviewCost
+from agent_tools.code_review.config import DEFAULT_OPENAI_MODEL
+from agent_tools.code_review.prompt import SYSTEM_PROMPT
 
 EMPTY = {"summary": "No review generated.", "findings": []}
 
@@ -20,7 +22,6 @@ OPENAI_PRICING = {
     "gpt-4o": (2.50 / 1e6, 10.00 / 1e6),
     "gpt-4o-mini": (0.15 / 1e6, 0.60 / 1e6),
 }
-DEFAULT_MODEL = "gpt-5.1-codex-mini"
 
 # Models that require the Responses API
 RESPONSES_MODELS = {
@@ -90,8 +91,7 @@ def _call_chat_completions(client, model, prompt):
         messages=[
             {
                 "role": "system",
-                "content": "You are a senior code reviewer. "
-                "Respond with JSON only.",
+                "content": SYSTEM_PROMPT,
             },
             {"role": "user", "content": prompt},
         ],
@@ -115,8 +115,7 @@ def _call_responses(client, model, prompt):
     """
     kwargs = {
         "model": model,
-        "instructions": "You are a senior code reviewer. "
-        "Respond with JSON only.",
+        "instructions": SYSTEM_PROMPT,
         "input": prompt,
     }
     if "codex" not in model:
@@ -126,7 +125,7 @@ def _call_responses(client, model, prompt):
     return raw, response.usage
 
 
-def review_openai(prompt, model=DEFAULT_MODEL, extract_json=None):
+def review_openai(prompt, model=DEFAULT_OPENAI_MODEL, extract_json=None):
     """Run review via OpenAI API.
 
     Auto-selects Chat Completions or Responses API
