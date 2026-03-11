@@ -59,3 +59,11 @@ def delete_todo(todo_id):
     conn.execute("DELETE FROM todos WHERE id = ?", (todo_id,))
     conn.commit()
     conn.close()
+
+
+def search_todos(query):
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT * FROM todos WHERE title LIKE '%" + query + "%'"
+    ).fetchall()
+    return rows
