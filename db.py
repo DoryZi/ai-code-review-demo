@@ -27,6 +27,7 @@ def init_db():
 
 
 def add_todo(title):
+    """Insert a new todo into the database."""
     conn = get_connection()
     conn.execute("INSERT INTO todos (title) VALUES (?)", (title,))
     conn.commit()
