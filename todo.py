@@ -3,7 +3,7 @@
 
 import argparse
 import sys
-from db import init_db, add_todo, list_todos, toggle_todo, delete_todo
+from db import init_db, add_todo, list_todos, toggle_todo, delete_todo, search_todos
 from utils import generate_description
 
 
@@ -38,6 +38,25 @@ def cmd_delete(args):
     print(f"Deleted todo #{args.id}")
 
 
+def cmd_search(args):
+    """Handle the search subcommand.
+
+    Args:
+        args (argparse.Namespace): Parsed arguments with query list.
+
+    Returns:
+        None
+    """
+    query = " ".join(args.query)
+    results = search_todos(query)
+    if not results:
+        print("No todos found.")
+        return
+    for t in results:
+        status = "x" if t["completed"] else " "
+        print(f"  [{status}] {t['id']}: {t['title']}")
+
+
 def main():
     init_db()
 
@@ -58,6 +77,11 @@ def main():
     p_done = sub.add_parser("done", help="Toggle a todo's completed status")
     p_done.add_argument("id", type=int, help="Todo ID")
     p_done.set_defaults(func=cmd_done)
+
+    # search
+    p_search = sub.add_parser("search", help="Search todos by title")
+    p_search.add_argument("query", nargs="+", help="Search query")
+    p_search.set_defaults(func=cmd_search)
 
     # delete
     p_del = sub.add_parser("delete", help="Delete a todo")
