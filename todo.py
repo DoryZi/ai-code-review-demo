@@ -39,8 +39,19 @@ def cmd_delete(args):
 
 
 def cmd_search(args):
+    """Handle the search subcommand.
+
+    Args:
+        args (argparse.Namespace): Parsed arguments with query list.
+
+    Returns:
+        None
+    """
     query = " ".join(args.query)
     results = search_todos(query)
+    if not results:
+        print("No todos found.")
+        return
     for t in results:
         status = "x" if t["completed"] else " "
         print(f"  [{status}] {t['id']}: {t['title']}")
