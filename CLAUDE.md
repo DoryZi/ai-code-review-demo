@@ -60,7 +60,7 @@ For deployment, debugging, or any infrastructure work, read these files first:
 - **infra/CLAUDE.md** — Commands and structure for infra work.
 - **infra/Infra.md** — Architecture diagrams and component relationships.
 
-## Boundries
+## Boundaries
 - never commit secrets, api keys or sensitive data.
 - do not delete files
 - keep files between 200-800 chars, break files into smaller files. 
