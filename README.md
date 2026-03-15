@@ -1,6 +1,8 @@
 # AI Code Reviewer
 
-An AI-powered code review agent that automatically reviews GitHub PRs using Claude Code CLI and posts inline comments with actionable findings.
+A simpler, cheaper alternative to paid AI code review services. Instead of paying $25+/seat/month for tools like CodeRabbit or Greptile, this project wires Claude Code CLI (or OpenAI) directly into a GitHub Action to review your PRs -- same inline comments, same actionable findings, and you control the prompts.
+
+This is an open experiment from [Dory Zidon](https://doryzidon.com) as part of the [AI Will Replace You](https://doryzidon.com) research into AI-driven engineering workflows. Use it freely, fork it, adapt it to your team.
 
 ## How It Works
 
@@ -38,10 +40,14 @@ PR opened/pushed
 
 ```
 agent_tools/code_review/      # The AI code review agent
+  __init__.py                  # Package init
   __main__.py                  # CLI entry point & pipeline orchestration
+  config.py                   # Tunable settings (max diff size, finding caps, default model)
   diff.py                     # Git diff retrieval (full PR or latest commit)
   reviewer.py                 # Invokes Claude Code CLI, parses JSON response
-  prompt.py                   # Review prompt template sent to Claude
+  openai_provider.py          # OpenAI API integration (Chat Completions + Responses API)
+  prompt.py                   # Review prompt builder
+  prompts/                    # Prompt templates (system.txt, review.txt)
   models.py                   # Finding dataclass (file, line, severity, etc.)
   schema.py                   # JSON schema for structured output
   commenter.py                # Posts review + inline comments via GitHub API
@@ -68,7 +74,7 @@ infra/                         # Helm + Terraform configs
 Supports two providers:
 
 - **Claude** (default) -- shells out to `claude -p --output-format json --max-turns 5`. Claude Code CLI handles auth, context, and tool use natively.
-- **OpenAI** -- calls the OpenAI API directly via the `openai` Python package with `response_format: json_object`. Set `OPENAI_API_KEY` in your environment.
+- **OpenAI** -- calls the OpenAI API via the `openai` Python package. Auto-selects Chat Completions API or Responses API depending on the model (codex models use Responses). Default model: `gpt-5.1-codex-mini`. Set `OPENAI_API_KEY` in your environment.
 
 Both providers use the same prompt and return the same structured JSON. Each finding includes file, line number, severity, category, a comment, and do/don't code examples.
 
@@ -113,7 +119,7 @@ Pass `--provider openai` to route the review through the OpenAI API instead. Req
 
 ```
 /review --provider openai                        # review with GPT-4o
-/review --provider openai --model gpt-4o-mini    # use a cheaper model
+/review --provider openai --model gpt-5-mini      # use a cheaper model
 /review --staged --provider openai               # combine with scope flags
 /review --branch main --provider openai          # diff vs. main, review with OpenAI
 ```
@@ -151,7 +157,7 @@ python -m agent_tools.code_review.local_review --fix-doc
 python -m agent_tools.code_review.local_review --provider openai
 
 # Use a specific OpenAI model
-python -m agent_tools.code_review.local_review --provider openai --model gpt-4o-mini
+python -m agent_tools.code_review.local_review --provider openai --model gpt-5-mini
 ```
 
 ## Running on a PR
