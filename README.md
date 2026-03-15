@@ -1,6 +1,7 @@
 # AI Code Reviewer
 
 An AI-powered code review agent that automatically reviews GitHub PRs using Claude Code CLI and posts inline comments with actionable findings.
+part of the AI Code Reviewr video https://www.youtube.com/watch?v=NElR29asEIw 
 
 ## How It Works
 
@@ -176,3 +177,11 @@ python todo.py list
 python todo.py done 1
 python todo.py delete 1
 ```
+
+
+Built and shared by [Dory Zidon](https://doryzidon.com) as part of ongoing research into
+AI-driven engineering tools. Free to use, fork, and adapt.
+Found issues, feel free to send PR or use as you wish. 
+  - Blog - https://doryzidon.com/blog
+  - YouTube -https://youtube.com/@aiwillreplaceyou
+  - More tools - https://github.com/DoryZi
