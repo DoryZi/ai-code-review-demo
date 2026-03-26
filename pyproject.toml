@@ -1,0 +1,9 @@
+[project]
+name = "ai-code-reviewer"
+version = "0.1.0"
+description = "AI-powered code review tool with Claude and OpenAI providers"
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=0.40.0",
+    "openai>=2.0.0",
+]

@@ -2,7 +2,7 @@
 name: review
 description: Run an AI code review on the current working tree changes. Use when the user wants to review their code, check for issues, or get feedback before committing.
 argument-hint: [--staged | --branch <name> | --provider openai | <file>]
-allowed-tools: Read, Grep, Glob, Bash(git diff*), Bash(source venv/bin/activate*)
+allowed-tools: Read, Grep, Glob, Bash(git diff*), Bash(uv run:*)
 ---
 
 # AI Code Review
@@ -15,7 +15,7 @@ Check `$ARGUMENTS` for `--provider openai`:
 
 - **If `--provider openai` is present**: Run the review via the local_review script, passing all arguments through:
   ```
-  source venv/bin/activate && python3 -m agent_tools.code_review.local_review $ARGUMENTS
+  uv run python -m agent_tools.code_review.local_review $ARGUMENTS
   ```
   Then display the output to the user. Do NOT review the code yourself.
 

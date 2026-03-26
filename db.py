@@ -59,3 +59,20 @@ def delete_todo(todo_id):
     conn.execute("DELETE FROM todos WHERE id = ?", (todo_id,))
     conn.commit()
     conn.close()
+
+
+def search_todos(query):
+    """Search todos by title substring.
+
+    Args:
+        query (str): Substring to search for in todo titles.
+
+    Returns:
+        list[sqlite3.Row]: Matching todo rows.
+    """
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT * FROM todos WHERE title LIKE ?", (f"%{query}%",)
+    ).fetchall()
+    conn.close()
+    return rows

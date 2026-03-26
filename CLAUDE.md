@@ -5,13 +5,11 @@ CLI todo application backed by SQLite. Python 3.14, no external dependencies.
 ## Commands
 
 ```bash
-source venv/bin/activate
-
-python todo.py add Buy groceries
-python todo.py list
-python todo.py list -a        # include completed
-python todo.py done <id>      # toggle completion
-python todo.py delete <id>
+uv run python todo.py add Buy groceries
+uv run python todo.py list
+uv run python todo.py list -a        # include completed
+uv run python todo.py done <id>      # toggle completion
+uv run python todo.py delete <id>
 ```
 
 ## Structure
